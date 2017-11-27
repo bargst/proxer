@@ -3,12 +3,14 @@
 
 import requests
 import argparse
+from datetime import datetime, timedelta
 
-from web3 import HTTPProvider, IPCProvider
+from web3 import Web3, HTTPProvider, IPCProvider
 
 import gevent
 import gevent.wsgi
 import gevent.queue
+from gevent import monkey; monkey.patch_socket()
 
 from tinyrpc.protocols.jsonrpc import JSONRPCProtocol
 from tinyrpc.transports.wsgi import WsgiServerTransport
@@ -20,20 +22,70 @@ class ProxyDispatcher(RPCDispatcher):
     def __init__(self, providers, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.providers = providers
+        self.invalid_providers = {}
+        self.provider = None
+        self.provider_blockNumber = 0
+        self.monitoring = gevent.spawn(self.monitor)
 
     def get_method(self, name):
-
-        print(self.providers)
+        """ 
+        Use provider to request the result of rpc method `name'
+        """
+        # Simple alias for provider method
         def provider_method(*args):
-            for provider in self.providers:
-                return provider.make_request(name, params=args)
+            return self.provider.make_request(name, params=args)
 
         try:
+            # Check if method is defined in this dispatcher
             return super().get_method(name)
         except KeyError:
+            # Fallback to forwarding method to provider
             return provider_method
 
         raise KeyError(name)
+
+    def get_provider_status(self, provider):
+        """ 
+        Function used to return status of provider.
+        Catch exception, such as timeout, as an invalid provider
+        """
+        w3 = Web3(provider)
+        try:
+            return (provider, w3.eth.syncing, w3.eth.blockNumber)
+        except:
+            return None
+
+    def monitor(self):
+        """
+        Active loop used to check satus of the providers
+        """
+        while True:
+            # Start background check of provider status
+            checks = [gevent.spawn(self.get_provider_status, provider) for provider in self.providers]
+            gevent.joinall(checks, timeout=2)
+
+            # Check the returned provider status
+            for check in checks:
+
+                # Elect provider based on returned status
+                if check.value:
+                    provider, syncing, block_number = check.value
+                    if not syncing and block_number > self.provider_blockNumber:
+                        self.provider = provider
+                        self.provider_blockNumber = block_number
+
+                # Exclude invalid provider
+                elif provider in self.providers:
+                    self.providers.remove(provider)
+                    self.invalid_providers[datetime.now()] = provider
+
+            # Activate provider again after a timeout
+            timeouts = [ date for date in self.invalid_providers if datetime.now() - date > timedelta(seconds=30) ]
+            for date in timeouts:
+                self.providers.append(self.invalid_providers.pop(date))
+
+            # Give some time to others ...
+            gevent.sleep(2)
 
 
 class Proxer:
@@ -57,27 +109,27 @@ class Proxer:
             self.dispatcher
         )
 
+    def eth_sign(self, addr, data):
+        return requests.put(self.args.manager + addr, json={'hexstr':data}).json()
+
+    def eth_sendTransaction(self, tx):
+        addr = tx.pop('from')
+        #TODO check transaction content
+        signed = requests.put(self.args.manager + addr, json=tx).json()
+        #TODO check signed result
+        return self.dispatcher.get_method('eth_sendRawTransaction')(signed)
 
     def start(self):
+
+        if self.args.manager:
+            self.dispatcher.add_method(self.eth_sign)
+            self.dispatcher.add_method(self.eth_sendTransaction)
+
         # start wsgi server as a background-greenlet
         gevent.spawn(self.wsgi_server.serve_forever)
         
         # in the main greenlet, run our rpc_server
         self.rpc_server.serve_forever()
-
-#account_url = 'http://localhost:5000/account/'
-#account_url = self.args.account_manager
-
-#    @dispatcher.public
-#    def eth_sign(addr, data):
-#        return requests.put(account_url + addr, json={'hexstr':data}).json()
-
-#    @dispatcher.public
-#    def eth_sendTransaction(transaction):
-#        addr = transaction.pop('from')
-#        #TODO check transaction content
-#        signed = requests.put(account_url + addr, json=transaction).json()
-#        return dispatcher.get_method('eth_sendRawTransaction')(signed)
 
 
 if __name__ == '__main__':
