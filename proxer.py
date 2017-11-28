@@ -98,6 +98,7 @@ class ProxyDispatcher(RPCDispatcher):
 class Proxer:
     def __init__(self):
         parser = argparse.ArgumentParser()
+        parser.add_argument("--port", help="Listen localy on PORT (default: 8545)", default=8545, type=int)
         parser.add_argument("--ipc", help="Add IPC-RPC provider", action='append_const', dest='providers', const=IPCProvider())
         parser.add_argument("--local-rpc", help="Add HTTP-RPC provider: http://localhost:8545", action='append_const', dest='providers', const=HTTPProvider('http://localhost:8545'))
         parser.add_argument("--rpc", help="Add HTTP-RPC provider", metavar='http://host:port', action='append', dest='providers', type=HTTPProvider)
@@ -108,7 +109,7 @@ class Proxer:
         
         self.providers = self.args.providers
         self.transport = WsgiServerTransport(queue_class=gevent.queue.Queue)
-        self.wsgi_server = gevent.wsgi.WSGIServer(('127.0.0.1', 8545), self.transport.handle)
+        self.wsgi_server = gevent.wsgi.WSGIServer(('127.0.0.1', self.args.port), self.transport.handle)
         self.dispatcher = ProxyDispatcher(self.providers)
         self.rpc_server = RPCServerGreenlets(
             self.transport,
