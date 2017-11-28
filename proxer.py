@@ -33,7 +33,14 @@ class ProxyDispatcher(RPCDispatcher):
         """
         # Simple alias for provider method
         def provider_method(*args):
-            return self.provider.make_request(name, params=args)
+            request = self.provider.make_request(name, params=args)
+            print(request)
+            if 'result' in request:
+                return request['result']
+            elif 'error' in request:
+                raise Exception(request['error'])
+
+            return None
 
         try:
             # Check if method is defined in this dispatcher
@@ -51,7 +58,7 @@ class ProxyDispatcher(RPCDispatcher):
         """
         w3 = Web3(provider)
         try:
-            return (provider, w3.eth.syncing, w3.eth.blockNumber)
+            return (provider, w3.eth.blockNumber)
         except:
             return None
 
@@ -69,8 +76,8 @@ class ProxyDispatcher(RPCDispatcher):
 
                 # Elect provider based on returned status
                 if check.value:
-                    provider, syncing, block_number = check.value
-                    if not syncing and block_number > self.provider_blockNumber:
+                    provider, block_number = check.value
+                    if block_number > self.provider_blockNumber:
                         self.provider = provider
                         self.provider_blockNumber = block_number
 
