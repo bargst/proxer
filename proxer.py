@@ -15,34 +15,61 @@ from tinyrpc.server.gevent import RPCServerGreenlets
 
 from web3 import HTTPProvider, IPCProvider
 
+from manager import AccountAPI
 from dispatcher import SingleProvider, MostRecentBlockProvider
 
 class Proxer:
     def __init__(self):
         parser = argparse.ArgumentParser()
+        # Proxy options
+        parser.add_argument("--no-proxy", help="Do not start local rpc proxy", action='store_true')
         parser.add_argument("--port", help="Listen localy on PORT (default: 8545)", default=8545, type=int)
-        parser.add_argument("--ipc", help="Add IPC-RPC provider", action='append_const', dest='providers', const=IPCProvider())
-        parser.add_argument("--local-rpc", help="Add HTTP-RPC provider: http://localhost:8545", action='append_const', dest='providers', const=HTTPProvider('http://localhost:8545'))
-        parser.add_argument("--rpc", help="Add HTTP-RPC provider", metavar='http://host:port', action='append', dest='providers', type=HTTPProvider)
-        parser.add_argument("--manager", help="Account manager acces URL", metavar='http://host:port', type=str)
+        parser.add_argument("--ipc", help="Add IPC-RPC provider to proxy", action='append_const', dest='providers', const=IPCProvider())
+        parser.add_argument("--local-rpc", help="Add http://localhost:8545 provider to proxy", action='append_const', dest='providers', const=HTTPProvider('http://localhost:8545'))
+        parser.add_argument("--rpc", help="Add HTTP-RPC provider to proxy", metavar='http://host:port', action='append', dest='providers', type=HTTPProvider)
+        # API options
+        parser.add_argument("--api", help="Start the rest API", action='store_true')
+        parser.add_argument("--api-port", help="API port to listen localy (default: 5000)", default=5000, type=int)
+        parser.add_argument("--manager-url", help="Account manager acces URL", metavar='http://host:port', type=str)
+
         parser.add_argument("--debug", help="Enable debug output", dest='debug', action='store_true')
         parser.add_argument("--trace", help="Enable trace output", dest='trace', action='store_true')
         self.args = parser.parse_args()
 
-        self.providers = self.args.providers if self.args.providers else [IPCProvider()]
-        self.transport = WsgiServerTransport(queue_class=gevent.queue.Queue)
-        self.wsgi_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.port), self.transport.handle)
 
+        # Greenlets
+        self.greenlets = []
+
+        # Create a dispatcher depending on number of providers
+        self.providers = self.args.providers if self.args.providers else [IPCProvider()]
         if len(self.providers) == 1:
             self.dispatcher = SingleProvider(self.providers[0])
         else:
             self.dispatcher = MostRecentBlockProvider(self.providers)
 
-        self.rpc_server = RPCServerGreenlets(
-            self.transport,
-            JSONRPCProtocol(),
-            self.dispatcher
-        )
+        if self.args.manager_url:
+            self.dispatcher.add_method(self.eth_sign)
+            self.dispatcher.add_method(self.eth_sendTransaction)
+
+
+        if not self.args.no_proxy:
+            # TinyRPC WSGI Server
+            self.transport = WsgiServerTransport(queue_class=gevent.queue.Queue)
+            self.wsgi_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.port), self.transport.handle)
+            self.greenlets.append(self.wsgi_server.serve_forever)
+
+            # TinyRPC RPC Server
+            self.rpc_server = RPCServerGreenlets(
+                self.transport,
+                JSONRPCProtocol(),
+                self.dispatcher
+            )
+            self.greenlets.append(self.rpc_server.serve_forever)
+
+        # Rest API server
+        if self.args.api:
+            self.api_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.api_port), AccountAPI)
+            self.greenlets.append(self.api_server.serve_forever)
 
     def eth_sign(self, addr, data):
         return requests.put(self.args.manager + addr, json={'hexstr':data}).json()
@@ -55,17 +82,8 @@ class Proxer:
         return self.dispatcher.get_method('eth_sendRawTransaction')(signed)
 
     def start(self):
-
-        if self.args.manager:
-            self.dispatcher.add_method(self.eth_sign)
-            self.dispatcher.add_method(self.eth_sendTransaction)
-
-        # start wsgi server as a background-greenlet
-        gevent.spawn(self.wsgi_server.serve_forever)
-
-        # in the main greenlet, run our rpc_server
-        self.rpc_server.serve_forever()
-
+        # Spawn and wait for the greenlets to finish.
+        gevent.joinall([gevent.spawn(greenlet) for greenlet in self.greenlets])
 
 if __name__ == '__main__':
     Proxer().start()
