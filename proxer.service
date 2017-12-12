@@ -1,0 +1,12 @@
+[Unit]
+Description=Proxer Daemon
+
+[Service]
+Environment="LC_ALL=C.UTF-8"
+Environment="LANG=C.UTF-8" 
+ExecStart=/usr/local/bin/pipenv run ./proxer.py --ipc --api
+WorkingDirectory=/home/ubuntu/proxer/
+User=ubuntu
+
+[Install]
+WantedBy=default.target
