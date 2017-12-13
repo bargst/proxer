@@ -1,0 +1,3 @@
+[submodule "pymaker"]
+	path = markets/pymaker
+	url = https://github.com/bargst/pymaker.git

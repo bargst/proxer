@@ -13,6 +13,9 @@ tinyrpc = {extras = ["wsgi", "httpclient", "gevent", "jsonext", "websocket"]}
 # Required because of https://github.com/kennethreitz/pipenv/pull/1095 :
 gevent = "*"
 gevent-websocket = "*"
+# Required because of markets/pymaker
+pytz = "*"
+eth-testrpc = "*"
 
 
 [dev-packages]

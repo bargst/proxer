@@ -13,9 +13,15 @@ from tinyrpc.protocols.jsonrpc import JSONRPCProtocol
 from tinyrpc.transports.wsgi import WsgiServerTransport
 from tinyrpc.server.gevent import RPCServerGreenlets
 
-from web3 import HTTPProvider, IPCProvider
+from werkzeug.wsgi import DispatcherMiddleware
+
+from web3 import Web3, HTTPProvider, IPCProvider
 
 from manager import AccountAPI
+
+from markets import MarketsAPI
+from markets.oasis import API as OasisAPI
+
 from dispatcher import SingleProvider, MostRecentBlockProvider
 
 class Proxer:
@@ -51,6 +57,9 @@ class Proxer:
             self.dispatcher.add_method(self.eth_sign)
             self.dispatcher.add_method(self.eth_sendTransaction)
 
+        # Web3 provider
+        self.web3 = Web3(self.providers)
+
 
         if not self.args.no_proxy:
             # TinyRPC WSGI Server
@@ -68,7 +77,18 @@ class Proxer:
 
         # Rest API server
         if self.args.api:
-            self.api_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.api_port), AccountAPI)
+            oasis_addr = '0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1'
+            weth_addr  = '0xECF8F87f810EcF450940c9f60066b4a7a501d6A7'
+            sai_addr   = '0x59aDCF176ED2f6788A41B8eA4c4904518e62B6A4'
+            oasis_api = OasisAPI(self.web3, oasis_addr, weth_addr, sai_addr)
+            markets_api = MarketsAPI()
+            markets_api.add_market('oasis', oasis_api)
+
+            #TODO make AccountAPI /account independant
+            self.api_application = DispatcherMiddleware(AccountAPI, {
+                                        '/market': markets_api.app
+                                    })
+            self.api_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.api_port), self.api_application)
             self.greenlets.append(self.api_server.serve_forever)
 
     def eth_sign(self, addr, data):
