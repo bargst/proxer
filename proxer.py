@@ -29,12 +29,14 @@ class Proxer:
         parser = argparse.ArgumentParser()
         # Proxy options
         parser.add_argument("--no-proxy", help="Do not start local rpc proxy", action='store_true')
+        parser.add_argument("--host", help="Listen on host IP (default: 127.0.0.1)", default='127.0.0.1')
         parser.add_argument("--port", help="Listen localy on PORT (default: 8545)", default=8545, type=int)
         parser.add_argument("--ipc", help="Add IPC-RPC provider to proxy", action='append_const', dest='providers', const=IPCProvider())
         parser.add_argument("--local-rpc", help="Add http://localhost:8545 provider to proxy", action='append_const', dest='providers', const=HTTPProvider('http://localhost:8545'))
         parser.add_argument("--rpc", help="Add HTTP-RPC provider to proxy", metavar='http://host:port', action='append', dest='providers', type=HTTPProvider)
         # API options
         parser.add_argument("--api", help="Start the rest API", action='store_true')
+        parser.add_argument("--api-host", help="API host IP to listen to (default: 127.0.0.1)", default='127.0.0.1')
         parser.add_argument("--api-port", help="API port to listen localy (default: 5000)", default=5000, type=int)
         parser.add_argument("--manager-url", help="Account manager acces URL", metavar='http://host:port', type=str)
 
@@ -64,7 +66,7 @@ class Proxer:
         if not self.args.no_proxy:
             # TinyRPC WSGI Server
             self.transport = WsgiServerTransport(queue_class=gevent.queue.Queue)
-            self.wsgi_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.port), self.transport.handle)
+            self.wsgi_server = gevent.pywsgi.WSGIServer((self.args.host, self.args.port), self.transport.handle)
             self.greenlets.append(self.wsgi_server.serve_forever)
 
             # TinyRPC RPC Server
@@ -88,7 +90,7 @@ class Proxer:
             self.api_application = DispatcherMiddleware(AccountAPI, {
                                         '/market': markets_api.app
                                     })
-            self.api_server = gevent.pywsgi.WSGIServer(('127.0.0.1', self.args.api_port), self.api_application)
+            self.api_server = gevent.pywsgi.WSGIServer((self.args.api_host, self.args.api_port), self.api_application)
             self.greenlets.append(self.api_server.serve_forever)
 
     def eth_sign(self, addr, data):
