@@ -7,7 +7,7 @@ name = "pypi"
 
 [packages]
 
-"web3" = "==4.0.0b1"
+"web3" = "==4.0.0b4"
 flask = "*"
 tinyrpc = {extras = ["wsgi", "httpclient", "gevent", "jsonext", "websocket"]}
 # Required because of https://github.com/kennethreitz/pipenv/pull/1095 :
