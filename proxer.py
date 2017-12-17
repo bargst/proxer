@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests
-import argparse
-
 import gevent
+from gevent import monkey ; monkey.patch_all()
 import gevent.pywsgi
 import gevent.queue
-from gevent import monkey; monkey.patch_socket()
+
+
+import requests
+import argparse
 
 from tinyrpc.protocols.jsonrpc import JSONRPCProtocol
 from tinyrpc.transports.wsgi import WsgiServerTransport
