@@ -2,9 +2,8 @@ from web3 import eth
 from flask import Blueprint, jsonify, request
 import copy
 
-#from web3.auto import w3
-from web3 import Web3, IPCProvider
-w3 = Web3(IPCProvider())
+from web3 import Web3
+
 account_api = Blueprint('account_api', __name__)
 
 accounts = {} 
@@ -18,8 +17,9 @@ def add_account():
     address = ""
 
     req_json = request.get_json()
+
     if req_json and "address" in req_json:
-        address = w3.toChecksumAddress(req_json["address"])
+        address = Web3.toChecksumAddress(req_json["address"])
         accounts[address] = { "locked": True }
         accounts[address]["key_file"] = req_json
 
@@ -27,7 +27,10 @@ def add_account():
 
 @account_api.route('/<account_id>')
 def show_account(account_id):
-    address = w3.toChecksumAddress(account_id)
+    try:
+        address = Web3.toChecksumAddress(account_id)
+    except:
+        address = None
     account = {}
 
     if address in accounts.keys():
@@ -40,9 +43,12 @@ def show_account(account_id):
         
     return jsonify(account)
 
-@app.route('/account/<account_id>', methods=['POST'])
+@account_api.route('/<account_id>', methods=['POST'])
 def unlock(account_id):
-    address = w3.toChecksumAddress(account_id)
+    try:
+        address = Web3.toChecksumAddress(account_id)
+    except:
+        address = None
     password = ""
 
     req_json = request.get_json()
@@ -63,7 +69,7 @@ def unlock(account_id):
             accounts[address]["private_key"] = ""
             accounts[address]["locked"] = True
 
-    return show_account(account_id)
+    return show_account(address)
 
 # Sign
 # >>> transaction = {
@@ -81,7 +87,10 @@ def unlock(account_id):
 #    }
 @account_api.route('/<account_id>', methods=['PUT'])
 def sign(account_id):
-    address = w3.toChecksumAddress(account_id)
+    try:
+        address = Web3.toChecksumAddress(account_id)
+    except:
+        address = None
     transaction = {}
     key = ""
     signature = ""
@@ -90,18 +99,19 @@ def sign(account_id):
         key = accounts[address]["private_key"]
 
     req_json = request.get_json()
+
     if key and req_json:
 
         # Sign message
         if   'message' in req_json:
             signed = eth.Account().sign(message=req_json['message'], private_key=key)
-            signature = w3.toHex(signed.signature)
+            signature = Web3.toHex(signed.signature)
         elif 'text' in req_json:
             signed = eth.Account().sign(message_text=req_json['text'], private_key=key)
-            signature = w3.toHex(signed.signature)
+            signature = Web3.toHex(signed.signature)
         elif 'hexstr' in req_json:
             signed = eth.Account().sign(message_hexstr=req_json['hexstr'], private_key=key)
-            signature = w3.toHex(signed.signature)
+            signature = Web3.toHex(signed.signature)
 
         # Sign transaction
         elif ( "to"        in req_json
@@ -111,6 +121,6 @@ def sign(account_id):
            and "nonce"    in req_json
            and "chainId"  in req_json):
             signed = eth.Account().signTransaction(req_json, key)
-            signature = w3.toHex(signed.rawTransaction)
+            signature = Web3.toHex(signed.rawTransaction)
 
     return jsonify(signature)
