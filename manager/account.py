@@ -1,19 +1,19 @@
 from web3 import eth
-from flask import Flask, jsonify, request
+from flask import Blueprint, jsonify, request
 import copy
 
 #from web3.auto import w3
 from web3 import Web3, IPCProvider
 w3 = Web3(IPCProvider())
-app = Flask(__name__)
+account_api = Blueprint('account_api', __name__)
 
 accounts = {} 
 
-@app.route("/account/")
+@account_api.route("/")
 def get_accounts():
     return jsonify([ addr for addr in accounts.keys()])
 
-@app.route('/account/', methods=['POST'])
+@account_api.route('/', methods=['POST'])
 def add_account():
     address = ""
 
@@ -25,7 +25,7 @@ def add_account():
 
     return jsonify(address)
 
-@app.route('/account/<account_id>')
+@account_api.route('/<account_id>')
 def show_account(account_id):
     address = w3.toChecksumAddress(account_id)
     account = {}
@@ -79,7 +79,7 @@ def unlock(account_id):
 #        'message': b'test',
 #        'hexstr': '0x736f6d652d746578742d74c3b62d7369676e',
 #    }
-@app.route('/account/<account_id>', methods=['PUT'])
+@account_api.route('/<account_id>', methods=['PUT'])
 def sign(account_id):
     address = w3.toChecksumAddress(account_id)
     transaction = {}

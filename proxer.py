@@ -18,7 +18,7 @@ from werkzeug.wsgi import DispatcherMiddleware
 
 from web3 import Web3, HTTPProvider, IPCProvider
 
-from manager import AccountAPI
+from manager import manager_app
 
 from markets import MarketsAPI
 from markets.oasis import API as OasisAPI
@@ -87,8 +87,7 @@ class Proxer:
             markets_api = MarketsAPI()
             markets_api.add_market('oasis', oasis_api)
 
-            #TODO make AccountAPI /account independant
-            self.api_application = DispatcherMiddleware(AccountAPI, {
+            self.api_application = DispatcherMiddleware(manager_app, {
                                         '/market': markets_api.app
                                     })
             self.api_server = gevent.pywsgi.WSGIServer((self.args.api_host, self.args.api_port), self.api_application)
