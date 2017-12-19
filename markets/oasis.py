@@ -4,15 +4,15 @@ from flask.views import MethodView
 from .pymaker.pymaker import Address
 from .pymaker.pymaker.oasis import MatchingMarket
 
-oasis_addr = '0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1'
-weth_addr  = '0xECF8F87f810EcF450940c9f60066b4a7a501d6A7'
-sai_addr   = '0x59aDCF176ED2f6788A41B8eA4c4904518e62B6A4'
+oasis_addr = '0x14FBCA95be7e99C15Cc2996c6C9d841e54B79425'
+weth_addr  = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+dai_addr   = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
 
 class OasisMarket:
 
     def __init__(self, web3):
         self.base = Address(weth_addr)
-        self.quote = Address(sai_addr)
+        self.quote = Address(dai_addr)
         self.oasis = MatchingMarket(web3=web3, address=Address(oasis_addr))
 
     def cast_order(self, order):
@@ -49,7 +49,7 @@ class OasisMarket:
         depth['bids'] = []
         depth['asks'] = []
         for order in self.oasis.get_orders():
-            (side, order) = cast_order(order)
+            (side, order) = self.cast_order(order)
             if side:
                 depth[side].append(order)
 
