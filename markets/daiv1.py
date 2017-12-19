@@ -1,10 +1,12 @@
-from flask import jsonify, current_app
+from flask import Blueprint, jsonify, current_app
 from flask.views import MethodView
 
 from .pymaker.pymaker import Address
 from .pymaker.pymaker.sai import Tub
 
 dai_tub = '0x448a5065aeBB8E423F0896E6c5D525C040f59af3'
+
+daiv1_api = Blueprint('daiv1_api', __name__)
 
 class DAIv1:
 
@@ -21,3 +23,4 @@ class DAIv1Cups(MethodView):
     def get(self):
         dai = current_app.extensions['daiv1']
         return jsonify(dai.get_cups())
+daiv1_api.add_url_rule('/cups', view_func=DAIv1Cups.as_view('cups'))

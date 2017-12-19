@@ -1,17 +1,22 @@
-from flask import Flask, Blueprint
-from markets.oasis import OasisBook, OasisMarket
-from markets.daiv1 import DAIv1Cups, DAIv1
+from flask import Flask, jsonify
 
-oasis_api = Blueprint('oasis_api', __name__)
-oasis_api.add_url_rule('/book', view_func=OasisBook.as_view('book'))
+from markets.oasis import oasis_api, OasisMarket
+from markets.daiv1 import daiv1_api, DAIv1
 
-daiv1_api = Blueprint('daiv1_api', __name__)
-daiv1_api.add_url_rule('/cups', view_func=DAIv1Cups.as_view('cups'))
+markets = {
+    '/oasis': oasis_api,
+    '/daiv1': daiv1_api,
+}
 
 markets_app = Flask(__name__)
-markets_app.register_blueprint(oasis_api, url_prefix='/oasis')
-markets_app.register_blueprint(daiv1_api, url_prefix='/daiv1')
+for market in markets:
+    markets_app.register_blueprint(markets[market], url_prefix=market)
 
+@markets_app.route('/')
+def get_markets():
+    return jsonify(list(markets.keys()))
+
+# Function to define global and persistant market object
 def app_push_web3(app, web3):
     app.extensions['web3'] = web3
     app.extensions['oasis_market'] = OasisMarket(web3)

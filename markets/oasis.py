@@ -1,4 +1,4 @@
-from flask import jsonify, current_app
+from flask import Blueprint, jsonify, current_app
 from flask.views import MethodView
 
 from .pymaker.pymaker import Address
@@ -7,6 +7,8 @@ from .pymaker.pymaker.oasis import MatchingMarket
 oasis_addr = '0x14FBCA95be7e99C15Cc2996c6C9d841e54B79425'
 weth_addr  = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 dai_addr   = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
+
+oasis_api = Blueprint('oasis_api', __name__)
 
 class OasisMarket:
 
@@ -63,3 +65,6 @@ class OasisBook(MethodView):
     def get(self):
         oasis_market = current_app.extensions['oasis_market']
         return jsonify(oasis_market.get_orders())
+
+oasis_api.add_url_rule('/book', view_func=OasisBook.as_view('book'))
+
