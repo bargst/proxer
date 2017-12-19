@@ -6,7 +6,6 @@ from gevent import monkey ; monkey.patch_all()
 import gevent.pywsgi
 import gevent.queue
 
-
 import requests
 import argparse
 
@@ -19,9 +18,7 @@ from werkzeug.wsgi import DispatcherMiddleware
 from web3 import Web3, HTTPProvider, IPCProvider
 
 from manager import manager_app
-
-from markets import MarketsAPI
-from markets.oasis import API as OasisAPI
+from markets import markets_app, OasisMarket
 
 from dispatcher import SingleProvider, MostRecentBlockProvider
 
@@ -80,16 +77,9 @@ class Proxer:
 
         # Rest API server
         if self.args.api:
-            oasis_addr = '0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1'
-            weth_addr  = '0xECF8F87f810EcF450940c9f60066b4a7a501d6A7'
-            sai_addr   = '0x59aDCF176ED2f6788A41B8eA4c4904518e62B6A4'
-            oasis_api = OasisAPI(self.web3, oasis_addr, weth_addr, sai_addr)
-            markets_api = MarketsAPI()
-            markets_api.add_market('oasis', oasis_api)
+            markets_app.extensions['oasis_market'] = OasisMarket(self.web3)
+            self.api_application = DispatcherMiddleware(manager_app, { '/market': markets_app })
 
-            self.api_application = DispatcherMiddleware(manager_app, {
-                                        '/market': markets_api.app
-                                    })
             self.api_server = gevent.pywsgi.WSGIServer((self.args.api_host, self.args.api_port), self.api_application)
             self.greenlets.append(self.api_server.serve_forever)
 
