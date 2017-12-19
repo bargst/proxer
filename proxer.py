@@ -18,7 +18,7 @@ from werkzeug.wsgi import DispatcherMiddleware
 from web3 import Web3, HTTPProvider, IPCProvider
 
 from manager import manager_app
-from markets import markets_app, OasisMarket
+from markets import app_push_web3, markets_app, OasisMarket
 
 from dispatcher import SingleProvider, MostRecentBlockProvider
 
@@ -77,7 +77,7 @@ class Proxer:
 
         # Rest API server
         if self.args.api:
-            markets_app.extensions['oasis_market'] = OasisMarket(self.web3)
+            app_push_web3(markets_app, self.web3)
             self.api_application = DispatcherMiddleware(manager_app, { '/market': markets_app })
 
             self.api_server = gevent.pywsgi.WSGIServer((self.args.api_host, self.args.api_port), self.api_application)
