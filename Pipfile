@@ -7,14 +7,13 @@ name = "pypi"
 
 [packages]
 
-"web3" = "==4.0.0b4"
+"web3" = "==4.0.0b5"
 flask = "*"
 tinyrpc = {extras = ["wsgi", "httpclient", "gevent", "jsonext", "websocket"]}
-# Required because of https://github.com/kennethreitz/pipenv/pull/1095 :
+# Required because of https://github.com/kennethreitz/pipenv/pull/1095
 gevent = "*"
 gevent-websocket = "*"
 # Required because of markets/pymaker submodule
-pytz = "*"
 eth-testrpc = "*"
 
 
