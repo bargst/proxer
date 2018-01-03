@@ -16,7 +16,7 @@ pipenv run ./proxer.py --help
 ### API
 Some available APIs
 ```
-curl http://localhost:5000/markets/oasis/book
+curl http://localhost:5000/markets/oasis/book/W-ETH/DAI
 curl http://localhost:5000/markets/daiv1
 {
   "cap": 50000000.0,
@@ -31,9 +31,9 @@ curl http://localhost:5000/markets/daiv1
 curl http://localhost:5000/markets/daiv1/cups
 curl http://localhost:5000/markets/daiv1/cups/42
 {
-  "art": 3.0,
+  "art": 1000.0,
   "id": 42,
-  "ink": 1000.0,
+  "ink": 3.0,
   "lad": "0xfa7c0b7331d0F43ae6f9ebE02Ac336c8986a7014",
   "safe": true
 }
