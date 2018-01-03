@@ -16,8 +16,8 @@ pipenv run ./proxer.py --help
 ### API
 Some available APIs
 ```
-curl http://localhost:5000/market/oasis/book
-curl http://localhost:5000/market/daiv1
+curl http://localhost:5000/markets/oasis/book
+curl http://localhost:5000/markets/daiv1
 {
   "cap": 50000000.0,
   "chi": 1.0,
@@ -28,8 +28,8 @@ curl http://localhost:5000/market/daiv1
   "tag": 831.7746380614806,
   "tax": 1.0
 }
-curl http://localhost:5000/market/daiv1/cups
-curl http://localhost:5000/market/daiv1/cups/42
+curl http://localhost:5000/markets/daiv1/cups
+curl http://localhost:5000/markets/daiv1/cups/42
 {
   "art": 3.0,
   "id": 42,

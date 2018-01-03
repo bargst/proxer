@@ -78,7 +78,7 @@ class Proxer:
         # Rest API server
         if self.args.api:
             app_push_web3(markets_app, self.web3)
-            self.api_application = DispatcherMiddleware(manager_app, { '/market': markets_app })
+            self.api_application = DispatcherMiddleware(manager_app, { '/markets': markets_app })
 
             self.api_server = gevent.pywsgi.WSGIServer((self.args.api_host, self.args.api_port), self.api_application)
             self.greenlets.append(self.api_server.serve_forever)
