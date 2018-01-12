@@ -1,3 +1,5 @@
+from . import Market
+
 from flask import Blueprint, jsonify, current_app
 from flask.views import MethodView
 
@@ -7,7 +9,7 @@ from .pymaker.pymaker.sai import Tub, Tap
 
 daiv1_api = Blueprint('daiv1_api', __name__)
 
-class DAIv1:
+class DAIv1(Market):
 
     def __init__(self, web3, dai_tub = '0x448a5065aeBB8E423F0896E6c5D525C040f59af3'):
         self.tub = Tub(web3=web3, address=Address(dai_tub))
@@ -93,7 +95,7 @@ class DAIv1:
 class DAIv1Cup(MethodView):
 
     def get(self, cup_id):
-        dai = current_app.extensions['daiv1']
+        dai = current_app.extensions['/daiv1']
         if cup_id:
             cups = dai.get_cup(cup_id)
         else:
@@ -106,7 +108,7 @@ daiv1_api.add_url_rule('/cups/<int:cup_id>', view_func=cup_view)
 class DAIv1Tub(MethodView):
 
     def get(self):
-        dai = current_app.extensions['daiv1']
+        dai = current_app.extensions['/daiv1']
         tub_details = {
                 'cap': float(dai.tub.cap()),
                 'mat': float(dai.tub.mat()),
@@ -123,7 +125,7 @@ daiv1_api.add_url_rule('/', view_func=DAIv1Tub.as_view('tub'))
 class DAIv1Book(MethodView):
 
     def get(self, base, quote):
-        dai = current_app.extensions['daiv1']
+        dai = current_app.extensions['/daiv1']
         if f'{base}/{quote}' in dai.get_pairs():
             book = dai.get_orders(base, quote)
         else:
@@ -137,7 +139,7 @@ daiv1_api.add_url_rule('/book/<base>/<quote>', view_func=book_view)
 class DAIv1Pairs(MethodView):
 
     def get(self):
-        dai = current_app.extensions['daiv1']
+        dai = current_app.extensions['/daiv1']
         return jsonify(dai.get_pairs())
 
 daiv1_api.add_url_rule('/pairs', view_func=DAIv1Pairs.as_view('pairs'))

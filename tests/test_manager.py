@@ -1,6 +1,5 @@
 import pytest
 import json
-from flask import request, url_for
 from manager import manager_app
 
 @pytest.fixture

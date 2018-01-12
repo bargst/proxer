@@ -1,7 +1,17 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, current_app
+
+class Market:
+    def get_accounts(self, manager_url):
+        return {}
 
 from markets.oasis import oasis_api, OasisMarket
 from markets.daiv1 import daiv1_api, DAIv1
+
+# Function to define global and persistant market object
+def app_push_web3(app, web3):
+    app.extensions['web3'] = web3
+    app.extensions['/oasis'] = OasisMarket(web3)
+    app.extensions['/daiv1'] = DAIv1(web3)
 
 markets = {
     '/oasis': oasis_api,
@@ -16,8 +26,12 @@ for market in markets:
 def get_markets():
     return jsonify(list(markets.keys()))
 
-# Function to define global and persistant market object
-def app_push_web3(app, web3):
-    app.extensions['web3'] = web3
-    app.extensions['oasis_market'] = OasisMarket(web3)
-    app.extensions['daiv1'] = DAIv1(web3)
+manager_url = 'http://localhost:5000/manager'
+@markets_app.route('/accounts')
+def get_accounts():
+    accounts = {}
+    for m in markets:
+        print(current_app)
+        accounts[m] = current_app.extensions[m].get_accounts(manager_url)
+
+    return jsonify({'manager_url': manager_url, 'accounts': accounts})

@@ -1,3 +1,5 @@
+from . import Market
+
 from flask import Blueprint, jsonify, current_app, url_for
 from flask.views import MethodView
 
@@ -14,7 +16,7 @@ tokens =  {'OWETH': '0xECF8F87f810EcF450940c9f60066b4a7a501d6A7', 'WETH': '0xC02
 
 oasis_api = Blueprint('oasis_api', __name__)
 
-class OasisMarket:
+class OasisMarket(Market):
 
     def __init__(self, web3):
         self.oasis = MatchingMarket(web3=web3, address=Address(oasis_addr))
@@ -80,7 +82,7 @@ class OasisMarket:
 class OasisBook(MethodView):
 
     def get(self, base, quote):
-        oasis_market = current_app.extensions['oasis_market']
+        oasis_market = current_app.extensions['/oasis']
         if base in tokens and quote in tokens:
             book = oasis_market.get_orders(tokens[base], tokens[quote])
         else:
@@ -94,7 +96,7 @@ oasis_api.add_url_rule('/book/<base>/<quote>', view_func=book_view)
 class OasisPairs(MethodView):
 
     def get(self):
-        oasis_market = current_app.extensions['oasis_market']
+        oasis_market = current_app.extensions['/oasis']
         return jsonify(oasis_market.get_pairs())
 
 oasis_api.add_url_rule('/pairs', view_func=OasisPairs.as_view('pairs'))
