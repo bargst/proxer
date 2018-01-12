@@ -1,9 +1,11 @@
-from . import Market
-
 from flask import Blueprint, jsonify, current_app, url_for
 from flask.views import MethodView
+import requests
+
+from . import Market
 
 from .pymaker.pymaker import Address
+from .pymaker.pymaker.token import ERC20Token
 from .pymaker.pymaker.oasis import MatchingMarket
 
 oasis_addr = '0x14FBCA95be7e99C15Cc2996c6C9d841e54B79425'
@@ -19,7 +21,13 @@ oasis_api = Blueprint('oasis_api', __name__)
 class OasisMarket(Market):
 
     def __init__(self, web3):
+        self.web3 = web3
         self.oasis = MatchingMarket(web3=web3, address=Address(oasis_addr))
+        self.tokens = {}
+        for token in tokens:
+            self.tokens[token] = ERC20Token(web3, Address(tokens[token]))
+        # Pop GNT because its not an ERC20 token
+        self.tokens.pop('GNT')
 
     def cast_order(self, order, base_addr, quote_addr):
         base = Address(base_addr)
@@ -78,6 +86,24 @@ class OasisMarket(Market):
         # Get uniq paris
         pairs = list(set(pairs))
         return pairs
+
+    def get_accounts(self, manager_url):
+        accounts = {}
+        for addr in requests.get(manager_url).json():
+            accounts[addr] = {
+                'balance' : self.web3.eth.getBalance(addr),
+            }
+            accounts[addr]['tokens'] = {}
+            for name, token in self.tokens.items():
+                balance = token.balance_of(Address(addr))
+                allowance = token.allowance_of(Address(addr), self.oasis.address)
+                if float(allowance) or float(balance):
+                    accounts[addr]['tokens'][name] = {
+                            'allowance': float(allowance),
+                            'balance': float(balance),
+                    }
+
+        return accounts
 
 class OasisBook(MethodView):
 

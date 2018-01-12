@@ -26,12 +26,11 @@ for market in markets:
 def get_markets():
     return jsonify(list(markets.keys()))
 
-manager_url = 'http://localhost:5000/manager'
+manager_url = 'http://localhost:5000/account/'
 @markets_app.route('/accounts')
 def get_accounts():
     accounts = {}
     for m in markets:
-        print(current_app)
         accounts[m] = current_app.extensions[m].get_accounts(manager_url)
 
     return jsonify({'manager_url': manager_url, 'accounts': accounts})

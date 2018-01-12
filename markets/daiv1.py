@@ -1,9 +1,11 @@
-from . import Market
-
 from flask import Blueprint, jsonify, current_app
 from flask.views import MethodView
+import requests
+
+from . import Market
 
 from .pymaker.pymaker import Address
+from .pymaker.pymaker.token import ERC20Token
 from .pymaker.pymaker.numeric import Wad
 from .pymaker.pymaker.sai import Tub, Tap
 
@@ -12,13 +14,14 @@ daiv1_api = Blueprint('daiv1_api', __name__)
 class DAIv1(Market):
 
     def __init__(self, web3, dai_tub = '0x448a5065aeBB8E423F0896E6c5D525C040f59af3'):
+        self.web3 = web3
         self.tub = Tub(web3=web3, address=Address(dai_tub))
         self.tap = Tap(web3=web3, address=self.tub.tap())
         self.tokens = {
-                'MKR': self.tub.gov(),
-                'PETH': self.tub.skr(),
-                'WETH': self.tub.gem(),
-                'DAI': self.tub.sai(),
+                'MKR': ERC20Token(web3, self.tub.gov()),
+                'PETH': ERC20Token(web3, self.tub.skr()),
+                'WETH': ERC20Token(web3, self.tub.gem()),
+                'DAI': ERC20Token(web3, self.tub.sai()),
         }
 
     def get_cup(self, cup_id):
@@ -91,6 +94,24 @@ class DAIv1(Market):
 
         return depth
 
+    def get_accounts(self, manager_url):
+        accounts = {}
+        for addr in requests.get(manager_url).json():
+            accounts[addr] = {
+                'balance' : self.web3.eth.getBalance(addr),
+            }
+            accounts[addr]['tokens'] = {}
+            for name, token in self.tokens.items():
+                balance = token.balance_of(Address(addr))
+                allowance = token.allowance_of(Address(addr), self.tub.address)
+                #TODO check tap allowance ...
+                if float(allowance) or float(balance):
+                    accounts[addr]['tokens'][name] = {
+                            'allowance': float(allowance),
+                            'balance': float(balance),
+                    }
+
+        return accounts
 
 class DAIv1Cup(MethodView):
 
