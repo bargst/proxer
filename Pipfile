@@ -9,7 +9,6 @@ name = "pypi"
 
 "web3" = "==4.0.0b5"
 flask = "*"
-tinyrpc = {extras = ["wsgi", "httpclient", "gevent", "jsonext", "websocket"]}
 # Required because of https://github.com/kennethreitz/pipenv/pull/1095
 gevent = "*"
 gevent-websocket = "*"
