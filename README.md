@@ -6,10 +6,8 @@ A proxy to Maker world (https://makerdao.com/).
 
 This project use pipenv to install required dependencies. See https://docs.pipenv.org/.
 
-### Proxer
 ```
-pipenv --three
-pipenv install
+make env
 pipenv run ./proxer.py --help
 ```
 
@@ -53,6 +51,6 @@ pipenv run python manager/push_keyfile.py $HOME/.ethereum/keystore/*
 ## Testing
 
 ```
-pipenv install --dev
+make devenv
 make test
 ```

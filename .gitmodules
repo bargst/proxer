@@ -1,3 +1,6 @@
 [submodule "pymaker"]
 	path = markets/pymaker
 	url = https://github.com/bargst/pymaker.git
+[submodule "lib/web3py-restprovider"]
+	path = lib/web3py-restprovider
+	url = https://github.com/bargst/web3py-restprovider.git

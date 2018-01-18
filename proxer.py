@@ -14,6 +14,7 @@ from web3 import Web3, HTTPProvider, IPCProvider
 from manager import manager_app
 from markets import app_push_web3, markets_app, OasisMarket
 
+
 class Proxer:
     def __init__(self):
         parser = argparse.ArgumentParser()
@@ -21,6 +22,7 @@ class Proxer:
         parser.add_argument("--ipc", help="Add IPC-RPC provider to proxy", action='append_const', dest='providers', const=IPCProvider())
         parser.add_argument("--local-rpc", help="Add http://localhost:8545 provider to proxy", action='append_const', dest='providers', const=HTTPProvider('http://localhost:8545'))
         parser.add_argument("--rpc", help="Add HTTP-RPC provider to proxy", metavar='http://host:port', action='append', dest='providers', type=HTTPProvider)
+        parser.add_argument("--rest", help="Add REST provider to proxy", metavar='http://host:port/path')
         # API options
         parser.add_argument("--host", help="Host IP to listen to (default: 127.0.0.1)", default='127.0.0.1')
         parser.add_argument("--port", help="Port to listen to (default: 5000)", default=5000, type=int)
@@ -33,8 +35,17 @@ class Proxer:
         # Greenlets
         self.greenlets = []
 
+        # Web3 RESTProvider
+        if self.args.rest:
+            from web3_restprovider import RESTProvider
+            if self.args.providers:
+                self.args.providers.append(RESTProvider(self.args.rest))
+            else:
+                self.args.providers = [RESTProvider(self.args.rest)]
+
+
         # Web3 provider
-        self.web3 = Web3(self.providers) if self.args.providers else Web3()
+        self.web3 = Web3(self.args.providers) if self.args.providers else Web3()
 
         app_push_web3(markets_app, self.web3)
         self.application = DispatcherMiddleware(manager_app, { '/markets': markets_app })
