@@ -35,17 +35,20 @@ class Proxer:
         # Greenlets
         self.greenlets = []
 
+        self.providers = self.args.providers  if self.args.providers else []
+
         # Web3 RESTProvider
         if self.args.rest:
             from web3_restprovider import RESTProvider
-            if self.args.providers:
-                self.args.providers.append(RESTProvider(self.args.rest))
-            else:
-                self.args.providers = [RESTProvider(self.args.rest)]
+            self.providers.append(RESTProvider(self.args.rest))
 
+        env_web3 = os.environ.get('WEB3_PROVIDER_URI', '')
+        if env_web3.startswith('rest+'):
+            from web3_restprovider import RESTProvider
+            self.providers.append(RESTProvider(env_web3[len('rest+'):]))
 
         # Web3 provider
-        self.web3 = Web3(self.args.providers) if self.args.providers else Web3()
+        self.web3 = Web3(self.providers) if self.providers else Web3()
 
         app_push_web3(markets_app, self.web3)
         self.application = DispatcherMiddleware(manager_app, { '/markets': markets_app })

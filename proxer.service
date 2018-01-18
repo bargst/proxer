@@ -4,7 +4,8 @@ Description=Proxer Daemon
 [Service]
 Environment="LC_ALL=C.UTF-8"
 Environment="LANG=C.UTF-8" 
-ExecStart=/usr/local/bin/pipenv run ./proxer.py --ipc --api
+Environment="WEB3_PROVIDER_URI=rest+http://localhost:8080"
+ExecStart=/usr/local/bin/pipenv run ./proxer.py
 WorkingDirectory=/home/ubuntu/proxer/
 User=ubuntu
 
