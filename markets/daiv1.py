@@ -4,10 +4,10 @@ import requests
 
 from . import Market
 
-from .pymaker.pymaker import Address
-from .pymaker.pymaker.token import ERC20Token
-from .pymaker.pymaker.numeric import Wad
-from .pymaker.pymaker.sai import Tub, Tap
+from pymaker import Address
+from pymaker.token import ERC20Token
+from pymaker.numeric import Wad
+from pymaker.sai import Tub, Tap
 
 daiv1_api = Blueprint('daiv1_api', __name__)
 

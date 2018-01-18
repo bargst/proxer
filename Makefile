@@ -3,7 +3,7 @@ env:
 	pipenv install
 	git submodule update --init
 	rm -f .env
-	for lib in lib/*; do echo 'PYTHONPATH=$$PYTHONPATH':$$(pwd)/$$lib >> .env ;  done
+	echo 'PYTHONPATH=$$PYTHONPATH'$$(ls -d lib/* | awk -v pwd=$$(pwd) '{printf(":"pwd"/"$$1)}') >> .env
 devenv: env
 	pipenv install --dev
 test:

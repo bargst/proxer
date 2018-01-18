@@ -4,9 +4,9 @@ import requests
 
 from . import Market
 
-from .pymaker.pymaker import Address
-from .pymaker.pymaker.token import ERC20Token
-from .pymaker.pymaker.oasis import MatchingMarket
+from pymaker import Address
+from pymaker.token import ERC20Token
+from pymaker.oasis import MatchingMarket
 
 oasis_addr = '0x14FBCA95be7e99C15Cc2996c6C9d841e54B79425'
 weth_addr  = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
