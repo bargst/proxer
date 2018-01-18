@@ -34,7 +34,7 @@ class TestAccount:
 
     def test_show_present_account_keyfile(self):
         res = self.client.get(f'/account/{account_addr}')
-        assert res.json == {'locked': True}
+        assert res.json['locked'] is True
 
     def test_unlock_not_present_keyfile(self):
         res = self.client.post(f'/account/0xdead000', data=json.dumps({"password" : "invalid_password"}), content_type='application/json')
@@ -42,11 +42,11 @@ class TestAccount:
 
     def test_unlock_keyfile_wrong_password(self):
         res = self.client.post(f'/account/{account_addr}', data=json.dumps({"password" : "invalid_password"}), content_type='application/json')
-        assert res.json == {'locked': True}
+        assert res.json['locked'] is True
 
     def test_unlock_keyfile_good_password(self):
         res = self.client.post(f'/account/{account_addr}', data=json.dumps({"password" : "default"}), content_type='application/json')
-        assert res.json == {'locked': False}
+        assert res.json['locked'] is False
 
     def test_sign_with_not_present_account(self):
         res = self.client.put(f'/account/0xdead000', data=json.dumps({"text" : "test"}), content_type='application/json')

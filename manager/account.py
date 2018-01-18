@@ -4,6 +4,14 @@ import copy
 
 from web3 import Web3
 
+import os
+env_web3 = os.environ.get('WEB3_PROVIDER_URI', '')
+if env_web3.startswith('rest+'):
+    from web3_restprovider import RESTProvider
+    web3 = Web3(RESTProvider(env_web3[len('rest+'):]))
+else:
+    web3 = Web3()
+
 account_api = Blueprint('account_api', __name__)
 
 accounts = {} 
@@ -40,6 +48,8 @@ def show_account(account_id):
             account.pop("key_file")
         if "private_key" in account:
             account.pop("private_key")
+
+        account['balance'] = web3.eth.getBalance(address)
         
     return jsonify(account)
 
