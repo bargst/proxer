@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "59deb19524953955b31f2c9d0471cc8ddc593143a6530bcbf5935fc3ba0eb159"
+            "sha256": "43176fc7f61bd1672832564690fbc58b8e95161e6c68707e550435288567d72a"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -9,9 +9,9 @@
             "os_name": "posix",
             "platform_machine": "x86_64",
             "platform_python_implementation": "CPython",
-            "platform_release": "4.14.12-1-ARCH",
+            "platform_release": "4.14.14-1-ARCH",
             "platform_system": "Linux",
-            "platform_version": "#1 SMP PREEMPT Fri Jan 5 18:19:34 UTC 2018",
+            "platform_version": "#1 SMP PREEMPT Fri Jan 19 18:42:04 UTC 2018",
             "python_full_version": "3.6.4",
             "python_version": "3.6",
             "sys_platform": "linux"
@@ -37,10 +37,10 @@
         },
         "certifi": {
             "hashes": [
-                "sha256:244be0d93b71e93fc0a0a479862051414d0e00e16435707e5bf5000f92e04694",
-                "sha256:5ec74291ca1136b40f0379e1128ff80e866597e4e2c1e755739a913bbc3613c0"
+                "sha256:14131608ad2fd56836d33a71ee60fa1c82bc9d2c8d98b7bdbc631fe1b3cd1296",
+                "sha256:edbc3f203427eef571f79a7692bb160a2b0f7ccaa31953e99bd17e307cf63f7d"
             ],
-            "version": "==2017.11.5"
+            "version": "==2018.1.18"
         },
         "cffi": {
             "hashes": [
@@ -117,10 +117,10 @@
         },
         "eth-tester": {
             "hashes": [
-                "sha256:4796eb590b4b7db8a5a423059a0a5189b72565a765c8c8e46ae8b841627366ca",
-                "sha256:a8ae607163e4a5c990800c4abf84783d4ef8639928d21ec9254364f779ce5905"
+                "sha256:345fba3914c1b324ae06759ae450754d1a1bd91d201c60702bcaf8e38f1dc2a0",
+                "sha256:7d4967debe4bfbd0f11ecc397f42244d6b52004fba62506f359cc76705c35dbe"
             ],
-            "version": "==0.1.0b11"
+            "version": "==0.1.0b12"
         },
         "eth-testrpc": {
             "hashes": [
@@ -409,10 +409,10 @@
         },
         "web3": {
             "hashes": [
-                "sha256:0ffc56f80358f5f14eb5a2cd14d76b0f2e7cd52f4ed69ae774c790e0210717ce",
-                "sha256:d7b82f839ae95a0d62067e6aa314ad042b075ff2f62c443b2defb846fd03f4a4"
+                "sha256:662d42c7248d8aacf9a3927ed445cc479c141684920657b6341171cf3eb2a922",
+                "sha256:9b7c4f4a5e8c6c78888df54f62e8b562a5e926f94f4d13702c24ed1112449e00"
             ],
-            "version": "==4.0.0b5"
+            "version": "==4.0.0b6"
         },
         "werkzeug": {
             "hashes": [

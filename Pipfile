@@ -7,7 +7,7 @@ name = "pypi"
 
 [packages]
 
-"web3" = "==4.0.0b5"
+"web3" = "==4.0.0b6"
 flask = "*"
 # Required because of https://github.com/kennethreitz/pipenv/pull/1095
 gevent = "*"
