@@ -1,20 +1,12 @@
-from web3 import eth
 from flask import Blueprint, jsonify, request
 import copy
 
-from web3 import Web3
+from .utils import web3
 
-import os
-env_web3 = os.environ.get('WEB3_PROVIDER_URI', '')
-if env_web3.startswith('rest+'):
-    from web3_restprovider import RESTProvider
-    web3 = Web3(RESTProvider(env_web3[len('rest+'):]))
-else:
-    web3 = Web3()
 
 account_api = Blueprint('account_api', __name__)
-
 accounts = {} 
+
 
 @account_api.route("/")
 def get_accounts():
@@ -27,7 +19,7 @@ def add_account():
     req_json = request.get_json()
 
     if req_json and "address" in req_json:
-        address = Web3.toChecksumAddress(req_json["address"])
+        address = web3.toChecksumAddress(req_json["address"])
         accounts[address] = { "locked": True }
         accounts[address]["key_file"] = req_json
 
@@ -36,7 +28,7 @@ def add_account():
 @account_api.route('/<account_id>')
 def show_account(account_id):
     try:
-        address = Web3.toChecksumAddress(account_id)
+        address = web3.toChecksumAddress(account_id)
     except:
         address = None
     account = {}
@@ -56,7 +48,7 @@ def show_account(account_id):
 @account_api.route('/<account_id>', methods=['POST'])
 def unlock(account_id):
     try:
-        address = Web3.toChecksumAddress(account_id)
+        address = web3.toChecksumAddress(account_id)
     except:
         address = None
     password = ""
@@ -73,7 +65,7 @@ def unlock(account_id):
     # Try to unlock key_file
     if address in accounts.keys() and password:
         try:
-            accounts[address]["private_key"] = eth.Account.decrypt(accounts[address]["key_file"], password)
+            accounts[address]["private_key"] = web3.eth.Account.decrypt(accounts[address]["key_file"], password)
             accounts[address]["locked"] = False
         except :
             accounts[address]["private_key"] = ""
@@ -98,7 +90,7 @@ def unlock(account_id):
 @account_api.route('/<account_id>', methods=['PUT'])
 def sign(account_id):
     try:
-        address = Web3.toChecksumAddress(account_id)
+        address = web3.toChecksumAddress(account_id)
     except:
         address = None
     transaction = {}
@@ -114,14 +106,14 @@ def sign(account_id):
 
         # Sign message
         if   'message' in req_json:
-            signed = eth.Account().sign(message=req_json['message'], private_key=key)
-            signature = Web3.toHex(signed.signature)
+            signed = web3.eth.Account().sign(message=req_json['message'], private_key=key)
+            signature = web3.toHex(signed.signature)
         elif 'text' in req_json:
-            signed = eth.Account().sign(message_text=req_json['text'], private_key=key)
-            signature = Web3.toHex(signed.signature)
+            signed = web3.eth.Account().sign(message_text=req_json['text'], private_key=key)
+            signature = web3.toHex(signed.signature)
         elif 'hexstr' in req_json:
-            signed = eth.Account().sign(message_hexstr=req_json['hexstr'], private_key=key)
-            signature = Web3.toHex(signed.signature)
+            signed = web3.eth.Account().sign(message_hexstr=req_json['hexstr'], private_key=key)
+            signature = web3.toHex(signed.signature)
 
         # Sign transaction
         elif ( "to"        in req_json
@@ -130,7 +122,7 @@ def sign(account_id):
            and "gasPrice" in req_json
            and "nonce"    in req_json
            and "chainId"  in req_json):
-            signed = eth.Account().signTransaction(req_json, key)
-            signature = Web3.toHex(signed.rawTransaction)
+            signed = web3.eth.Account().signTransaction(req_json, key)
+            signature = web3.toHex(signed.rawTransaction)
 
     return jsonify(signature)

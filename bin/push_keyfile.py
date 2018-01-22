@@ -7,7 +7,7 @@ import json
 import getpass
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--manager", help="Account manager acces URL (default: http://localhost:5000/account/", metavar='http://host:port', type=str, default='http://localhost:5000/account/')
+parser.add_argument("--manager", help="Account manager acces URL (default: http://localhost:5000/accounts/", metavar='http://host:port', type=str, default='http://localhost:5000/accounts/')
 parser.add_argument("keyfile", help="Add keyfile to account manager", nargs='+')
 args = parser.parse_args()
 
