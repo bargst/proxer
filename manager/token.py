@@ -47,7 +47,7 @@ class Token(MethodView):
     def put(self, account_id, token, addr):
         src = cast_addr(account_id)
         dst = cast_addr(addr)
-        if not src or not dst:
+        if not src:
             abort(404)
 
         if not token or token not in tokens:
@@ -57,7 +57,7 @@ class Token(MethodView):
         # ['transfer', 'transferFrom', 'approve']
         req_json = request.get_json()
         transaction = {}
-        if req_json and 'transfert' in req_json:
+        if req_json and 'transfert' in req_json and dst:
             amount = req_json['transfert']
             try:
                 tx = t.transfer(dst, amount).buildTransaction()
@@ -65,7 +65,7 @@ class Token(MethodView):
                 tx = {}
             return jsonify(tx)
 
-        if req_json and 'transferFrom' in req_json:
+        if req_json and 'transferFrom' in req_json and dst:
             amount = req_json['transferFrom']
             try:
                 tx = t.transferFrom(dst, amount).buildTransaction()
@@ -73,12 +73,26 @@ class Token(MethodView):
                 tx = {}
             return jsonify(tx)
 
-        if req_json and 'approve' in req_json:
+        if req_json and 'approve' in req_json and dst:
             amount = req_json['approve']
             try:
                 tx = t.approve(dst, amount).buildTransaction()
             except:
                 tx = {}
+            return jsonify(tx)
+
+        if req_json and 'deposit' in req_json and token in ['OWETH', 'WETH']:
+            amount = req_json['deposit']
+            try:
+                tx = t.deposit().buildTransaction()
+                tx['value'] = amount
+            except:
+                tx = {}
+            return jsonify(tx)
+
+        if req_json and 'withdraw' in req_json and token in ['OWETH', 'WETH']:
+            amount = req_json['withdraw']
+            tx = t.withdraw(amount).buildTransaction({'gas':150000})
             return jsonify(tx)
 
         return jsonify({})

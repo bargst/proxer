@@ -36,7 +36,10 @@ def load_abi(package, resource):
     return json.loads(pkg_resources.resource_string(package, resource))
 
 ERC20Token = web3.eth.contract(abi=load_abi('pymaker', 'abi/ERC20Token.abi'))
+DSEthToken = web3.eth.contract(abi=load_abi('pymaker', 'abi/DSEthToken.abi'))
 tokens = { name: ERC20Token(address=token_addresses[name]) for name in token_addresses }
+tokens['OWETH'] = DSEthToken(address=token_addresses['OWETH'])
+tokens['WETH'] = DSEthToken(address=token_addresses['WETH'])
 
 def cast_addr(string):
     try:
