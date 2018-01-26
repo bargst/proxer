@@ -65,7 +65,7 @@ def unlock(account_id):
     # Try to unlock key_file
     if address in accounts.keys() and password:
         try:
-            accounts[address]["private_key"] = web3.eth.Account.decrypt(accounts[address]["key_file"], password)
+            accounts[address]["private_key"] = web3.eth.account.decrypt(accounts[address]["key_file"], password)
             accounts[address]["locked"] = False
         except :
             accounts[address]["private_key"] = ""
@@ -106,13 +106,13 @@ def sign(account_id):
 
         # Sign message
         if   'message' in req_json:
-            signed = web3.eth.Account().sign(message=req_json['message'], private_key=key)
+            signed = web3.eth.account.sign(message=req_json['message'], private_key=key)
             signature = web3.toHex(signed.signature)
         elif 'text' in req_json:
-            signed = web3.eth.Account().sign(message_text=req_json['text'], private_key=key)
+            signed = web3.eth.account.sign(message_text=req_json['text'], private_key=key)
             signature = web3.toHex(signed.signature)
         elif 'hexstr' in req_json:
-            signed = web3.eth.Account().sign(message_hexstr=req_json['hexstr'], private_key=key)
+            signed = web3.eth.account.sign(message_hexstr=req_json['hexstr'], private_key=key)
             signature = web3.toHex(signed.signature)
 
         # Sign transaction
@@ -122,7 +122,7 @@ def sign(account_id):
            and "gasPrice" in req_json
            and "nonce"    in req_json
            and "chainId"  in req_json):
-            signed = web3.eth.Account().signTransaction(req_json, key)
+            signed = web3.eth.account.signTransaction(req_json, key)
             signature = web3.toHex(signed.rawTransaction)
 
     return jsonify(signature)

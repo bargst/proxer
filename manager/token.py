@@ -41,6 +41,9 @@ class Token(MethodView):
                 t[name]['allowance'] = allowance
             if not t[name]:
                 t.pop(name)
+            else:
+                t[name]['address'] = token.address
+
 
         return jsonify(t)
 
